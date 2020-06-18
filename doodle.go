@@ -49,7 +49,7 @@ type PollCreated struct {
 func composeOptions(start int64) *[]DateOption {
 	options := make([]DateOption, 7)
 
-	//TODO: define options
+	//TODO: define options truly
 
 	return &options
 }
