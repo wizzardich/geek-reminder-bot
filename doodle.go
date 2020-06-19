@@ -48,19 +48,19 @@ type PollCreated struct {
 	AdminKey string `json:"adminKey"`
 }
 
-func composeOptions(start int64) []DateOption {
+func composeOptions(start int64) *[]DateOption {
 	options := make([]DateOption, 7)
 
 	//TODO: define options truly
 
-	return options
+	return &options
 }
 
-func newPollRequest(title string, start int64) PollRequest {
+func newPollRequest(title string, start int64) *PollRequest {
 	initiator := Initiator{"Your friendly bot", hostEmail, true, hostTimeZone}
 	options := composeOptions(start)
 
-	return PollRequest{initiator, options, []string{}, []string{}, "DATE", title, "", "YESNOIFNEEDBE", false, false, false, false, false, "en_US"}
+	return &PollRequest{initiator, *options, []string{}, []string{}, "DATE", title, "", "YESNOIFNEEDBE", false, false, false, false, false, "en_US"}
 }
 
 func createPoll(title string, start int64) error {
