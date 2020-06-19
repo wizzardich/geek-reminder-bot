@@ -52,9 +52,8 @@ type PollCreated struct {
 }
 
 func composeOptions() *[]DateOption {
-	options := make([]DateOption, 7)
+	options := make([]DateOption, 0, 7)
 
-	//TODO: define options truly
 	now := time.Now()
 
 	start := now
@@ -64,11 +63,11 @@ func composeOptions() *[]DateOption {
 
 	index := 0
 	current := start
-	for current.Weekday() != time.Monday {
+	for current == start || current.Weekday() != time.Monday {
 		newUUID := uuid.NewV4()
-		options[index] = DateOption{true, current.UnixNano(), nil, newUUID.String()}
+		options = append(options, DateOption{true, current.Unix() * 1000, nil, newUUID.String()})
 		index++
-		current.AddDate(0, 0, 1)
+		current = current.AddDate(0, 0, 1)
 	}
 
 	return &options
@@ -83,7 +82,7 @@ func composeTitle() string {
 	}
 
 	end := start.AddDate(0, 0, 1)
-	for end.Weekday() != time.Monday {
+	for end.Weekday() != time.Sunday {
 		end = end.AddDate(0, 0, 1)
 	}
 
