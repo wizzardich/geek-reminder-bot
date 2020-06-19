@@ -10,57 +10,57 @@ import (
 
 // Initiator of the poll; its owner
 type Initiator struct {
-	Name     string `json: "name"`
-	Email    string `json: "email"`
-	Notify   bool   `json: "notify"`
-	TimeZone string `json: "timeZone"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Notify   bool   `json:"notify"`
+	TimeZone string `json:"timeZone"`
 }
 
 // A DateOption represents a pickable option in the poll
 type DateOption struct {
-	AllDay bool   `json: "allday"`
-	Start  int64  `json: "start"`
-	End    string `json: "end"`
-	ID     string `json: "id"`
+	AllDay bool   `json:"allday"`
+	Start  int64  `json:"start"`
+	End    string `json:"end"`
+	ID     string `json:"id"`
 }
 
 // A PollRequest contains all information necessary to create a Doodle Poll
 type PollRequest struct {
-	Initiator       Initiator    `json: "initiator"`
-	Options         []DateOption `json: "options"`
-	Participants    []string     `json: "participants"`
-	Comments        []string     `json: "comments"`
-	Type            string       `json: "type"`
-	Title           string       `json: "title"`
-	Description     string       `json: "description"`
-	PreferencesType string       `json: "preferencesType"`
-	Hidden          bool         `json: "hidden"`
-	RemindInvitees  bool         `json: "remindInvitees"`
-	AskAddress      bool         `json: "askAddress"`
-	AskEmail        bool         `json: "askEmail"`
-	AskPhone        bool         `json: "askPhone"`
-	Locale          string       `json: "locale"`
+	Initiator       Initiator    `json:"initiator"`
+	Options         []DateOption `json:"options"`
+	Participants    []string     `json:"participants"`
+	Comments        []string     `json:"comments"`
+	Type            string       `json:"type"`
+	Title           string       `json:"title"`
+	Description     string       `json:"description"`
+	PreferencesType string       `json:"preferencesType"`
+	Hidden          bool         `json:"hidden"`
+	RemindInvitees  bool         `json:"remindInvitees"`
+	AskAddress      bool         `json:"askAddress"`
+	AskEmail        bool         `json:"askEmail"`
+	AskPhone        bool         `json:"askPhone"`
+	Locale          string       `json:"locale"`
 }
 
 // A PollCreated object represents a simplified JSON response from Doodle API
 type PollCreated struct {
-	ID       string `json: "id"`
-	AdminKey string `json: "adminKey"`
+	ID       string `json:"id"`
+	AdminKey string `json:"adminKey"`
 }
 
-func composeOptions(start int64) *[]DateOption {
+func composeOptions(start int64) []DateOption {
 	options := make([]DateOption, 7)
 
 	//TODO: define options truly
 
-	return &options
+	return options
 }
 
-func newPollRequest(title string, start int64) *PollRequest {
+func newPollRequest(title string, start int64) PollRequest {
 	initiator := Initiator{"Your friendly bot", hostEmail, true, hostTimeZone}
 	options := composeOptions(start)
 
-	return &PollRequest{initiator, options, []string{}, []string{}, "DATE", title, "", "YESNOIFNEEDBE", false, false, false, false, false, "en_US"}
+	return PollRequest{initiator, options, []string{}, []string{}, "DATE", title, "", "YESNOIFNEEDBE", false, false, false, false, false, "en_US"}
 }
 
 func createPoll(title string, start int64) error {
@@ -100,7 +100,7 @@ func createPoll(title string, start int64) error {
 	defer resp.Body.Close()
 
 	var responseBody PollCreated
-	err = json.NewDecoder(resp.Body).Decode(responseBody)
+	err = json.NewDecoder(resp.Body).Decode(&responseBody)
 
 	if err != nil {
 		log.Printf("Error while decoding Doodle response object: %+v.", resp)
