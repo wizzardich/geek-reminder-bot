@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
@@ -15,6 +16,11 @@ const tokenEnv = "GO_TELEGRAM_TOKEN"
 const emailEnv = "GO_DOODLE_EMAIL"
 const timezEnv = "GO_DOODLE_TZ"
 const localEnv = "GO_EXTERNAL_ADDRESS"
+
+const scheduleCommand = "/schedule"
+const scheduleNowCommand = "/schedule now"
+const scheduleWeeklyCommand = "/schedule weekly"
+const unscheduleCommand = "/unschedule"
 
 func main() {
 	token := os.Getenv(tokenEnv)
@@ -73,25 +79,23 @@ func main() {
 	go http.ListenAndServe(":8443", nil)
 
 	for update := range updates {
-		if update.ChannelPost == nil {
+		switch {
+		case update.ChannelPost == nil:
+			continue
+		case !update.ChannelPost.IsCommand():
+			continue
+		case strings.HasPrefix(update.ChannelPost.Text, scheduleNowCommand):
+			log.Printf("[%d] -- %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
+			scheduleNowDoodle(bot, update.ChannelPost.Chat.ID)
+		case strings.HasPrefix(update.ChannelPost.Text, scheduleWeeklyCommand):
+			log.Printf("[%d] -- %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
+			scheduleWeeklyDoodle(bot, update.ChannelPost.Chat.ID)
+		case strings.HasPrefix(update.ChannelPost.Text, unscheduleCommand):
+			log.Printf("[%d] -- %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
+			revoke(update.ChannelPost.Chat.ID)
+		default:
+			log.Printf("[WARNING][%d] -- %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
 			continue
 		}
-
-		log.Printf("[%d] -- %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
-
-		msg := tgbotapi.NewMessage(update.ChannelPost.Chat.ID, "Ahoy, mateys!")
-		msg.ReplyToMessageID = update.ChannelPost.MessageID
-
-		if update.ChannelPost.Text == "GO" {
-			created, err := createPoll()
-
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			log.Printf("Poll %s created with admin key %s", created.ID, created.AdminKey)
-		}
-
-		bot.Send(msg)
 	}
 }
