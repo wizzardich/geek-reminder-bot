@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 // Initiator of the poll; its owner
@@ -20,7 +23,7 @@ type Initiator struct {
 type DateOption struct {
 	AllDay bool   `json:"allday"`
 	Start  int64  `json:"start"`
-	End    string `json:"end"`
+	End    *[]int `json:"end"`
 	ID     string `json:"id"`
 }
 
@@ -48,25 +51,59 @@ type PollCreated struct {
 	AdminKey string `json:"adminKey"`
 }
 
-func composeOptions(start int64) *[]DateOption {
+func composeOptions() *[]DateOption {
 	options := make([]DateOption, 7)
 
 	//TODO: define options truly
+	now := time.Now()
+
+	start := now
+	for start.Weekday() != time.Monday {
+		start = start.AddDate(0, 0, 1)
+	}
+
+	index := 0
+	current := start
+	for current.Weekday() != time.Monday {
+		newUUID := uuid.NewV4()
+		options[index] = DateOption{true, current.UnixNano(), nil, newUUID.String()}
+		index++
+		current.AddDate(0, 0, 1)
+	}
 
 	return &options
 }
 
-func newPollRequest(title string, start int64) *PollRequest {
+func composeTitle() string {
+	now := time.Now()
+
+	start := now
+	for start.Weekday() != time.Monday {
+		start = start.AddDate(0, 0, 1)
+	}
+
+	end := start.AddDate(0, 0, 1)
+	for end.Weekday() != time.Monday {
+		end = end.AddDate(0, 0, 1)
+	}
+
+	title := start.Format("Jan 02") + " - " + end.Format("Jan 02") + " Geek Availability"
+
+	return title
+}
+
+func newPollRequest() *PollRequest {
 	initiator := Initiator{"Your friendly bot", hostEmail, true, hostTimeZone}
-	options := composeOptions(start)
+	options := composeOptions()
+	title := composeTitle()
 
 	return &PollRequest{initiator, *options, []string{}, []string{}, "DATE", title, "", "YESNOIFNEEDBE", false, false, false, false, false, "en_US"}
 }
 
-func createPoll(title string, start int64) error {
+func createPoll() (*PollCreated, error) {
 	url := "https://doodle.com/api/v2.0/polls"
 
-	pollRequest := newPollRequest(title, start)
+	pollRequest := newPollRequest()
 
 	log.Printf("Preparing poll request %+v", pollRequest)
 
@@ -75,7 +112,7 @@ func createPoll(title string, start int64) error {
 	if err != nil {
 		log.Println("Error while marshalling poll request object.")
 		log.Println(err)
-		return err
+		return nil, err
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonB))
@@ -83,7 +120,7 @@ func createPoll(title string, start int64) error {
 	if err != nil {
 		log.Println("Error while creating a HTTP request object.")
 		log.Println(err)
-		return err
+		return nil, err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -94,7 +131,7 @@ func createPoll(title string, start int64) error {
 	if err != nil {
 		log.Printf("Error while performing an HTTP request object to %s: %+v.", url, req)
 		log.Println(err)
-		return err
+		return nil, err
 	}
 
 	defer resp.Body.Close()
@@ -105,14 +142,14 @@ func createPoll(title string, start int64) error {
 	if err != nil {
 		log.Printf("Error while decoding Doodle response object: %+v.", resp)
 		log.Println(err)
-		return err
+		return nil, err
 	}
 
 	if resp.StatusCode != 200 {
 		log.Printf("Received response with status code set to %d.\n", resp.StatusCode)
 		log.Printf("Response body: %+v", responseBody)
-		return fmt.Errorf("response from doodle with status %d", resp.StatusCode)
+		return nil, fmt.Errorf("response from doodle with status %d", resp.StatusCode)
 	}
 
-	return nil
+	return &responseBody, nil
 }
