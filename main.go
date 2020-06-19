@@ -8,6 +8,9 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
+var hostEmail string
+var hostTimeZone string
+
 func main() {
 	token := os.Getenv("GO_TELEGRAM_TOKEN")
 
@@ -20,7 +23,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	bot.Debug = true
+	// bot.Debug = true
 
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
