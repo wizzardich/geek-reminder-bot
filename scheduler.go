@@ -32,8 +32,18 @@ func revoke(channelID int64) {
 func invoke(scheduler *Scheduler, channelID int64) {
 	processChannel := make(chan bool)
 	go func() { processChannel <- true }()
-	<-scheduler.timer.C
-	scheduler.ticker = time.NewTicker(timeout)
+	select {
+	case <-scheduler.kill:
+		log.Printf("[%d] closing the scheduler", channelID)
+		if scheduler.ticker != nil {
+			scheduler.ticker.Stop()
+		}
+		scheduler.timer.Stop()
+		delete(scheduleCache, channelID)
+		return
+	case <-scheduler.timer.C:
+		scheduler.ticker = time.NewTicker(timeout)
+	}
 
 	for {
 		select {
