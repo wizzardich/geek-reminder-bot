@@ -16,18 +16,24 @@ type Scheduler struct {
 }
 
 var scheduleCache = make(map[int64]*Scheduler)
+var timeout = 24 * time.Hour
 
 func revoke(channelID int64) {
 	if scheduler, ok := scheduleCache[channelID]; ok {
-		scheduler.kill <- true
+		go func() {
+			scheduler.kill <- true
+			log.Printf("[%d] -- succesfully unscheduled", channelID)
+		}()
+		msg := tgbotapi.NewMessage(channelID, "Отменили все расписания в этом канале, капитан!")
+		scheduler.bot.Send(msg)
 	}
 }
 
 func invoke(scheduler *Scheduler, channelID int64) {
 	processChannel := make(chan bool)
+	go func() { processChannel <- true }()
 	<-scheduler.timer.C
-	processChannel <- true
-	scheduler.ticker = time.NewTicker(24 * time.Hour)
+	scheduler.ticker = time.NewTicker(timeout)
 
 	for {
 		select {
@@ -40,6 +46,11 @@ func invoke(scheduler *Scheduler, channelID int64) {
 			delete(scheduleCache, channelID)
 			return
 		case <-processChannel:
+			now := time.Now()
+			if now.Weekday() == time.Sunday {
+				log.Printf("[%d] Scheduling a new poll for %s.\n", channelID, now.String())
+				scheduleNowDoodle(scheduler.bot, channelID)
+			}
 		case <-scheduler.ticker.C:
 			now := time.Now()
 			if now.Weekday() == time.Sunday {
@@ -52,6 +63,12 @@ func invoke(scheduler *Scheduler, channelID int64) {
 
 func scheduleWeeklyDoodle(bot *tgbotapi.BotAPI, channelID int64) {
 	now := time.Now()
+
+	if _, ok := scheduleCache[channelID]; ok {
+		msg := tgbotapi.NewMessage(channelID, "А мы уже, капитан!")
+		bot.Send(msg)
+		return
+	}
 
 	var nearest10AM time.Time
 	if now.Hour() < 10 {
@@ -70,6 +87,9 @@ func scheduleWeeklyDoodle(bot *tgbotapi.BotAPI, channelID int64) {
 	scheduleCache[channelID] = &scheduler
 
 	go invoke(&scheduler, channelID)
+
+	msg := tgbotapi.NewMessage(channelID, "Капитан, планируем планировать! Прям через "+delta.String()+" проверю иль не пора уж!")
+	scheduler.bot.Send(msg)
 }
 
 func scheduleNowDoodle(bot *tgbotapi.BotAPI, channelID int64) {
