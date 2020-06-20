@@ -13,4 +13,6 @@ ADD . $SRC_DIR
 RUN cd $SRC_DIR && \
     go build -o /app/geek-reminder-bot
 
+EXPOSE 8443
+
 ENTRYPOINT ["./geek-reminder-bot"]
