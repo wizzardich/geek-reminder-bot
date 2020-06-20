@@ -85,13 +85,13 @@ func main() {
 		case !update.ChannelPost.IsCommand():
 			continue
 		case strings.HasPrefix(update.ChannelPost.Text, scheduleNowCommand):
-			log.Printf("[%d] -- %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
+			log.Printf("[%d] -- will schedule now as per: %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
 			scheduleNowDoodle(bot, update.ChannelPost.Chat.ID)
 		case strings.HasPrefix(update.ChannelPost.Text, scheduleWeeklyCommand):
-			log.Printf("[%d] -- %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
+			log.Printf("[%d] -- will schedule weekly as per: %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
 			scheduleWeeklyDoodle(bot, update.ChannelPost.Chat.ID)
 		case strings.HasPrefix(update.ChannelPost.Text, unscheduleCommand):
-			log.Printf("[%d] -- %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
+			log.Printf("[%d] -- will unschedule now as per: %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
 			revoke(update.ChannelPost.Chat.ID)
 		default:
 			log.Printf("[WARNING][%d] -- %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
