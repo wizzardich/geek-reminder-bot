@@ -63,7 +63,7 @@ func composeOptions() *[]DateOption {
 
 	index := 0
 	current := time.Date(start.Year(), start.Month(), start.Day(), 12, 0, 0, 0, time.UTC)
-	for current == start || current.Weekday() != time.Monday {
+	for current.Day() == start.Day() || current.Weekday() != time.Monday {
 		newUUID := uuid.NewV4()
 		options = append(options, DateOption{true, current.Unix() * 1000, nil, newUUID.String()})
 		index++
