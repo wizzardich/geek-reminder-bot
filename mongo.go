@@ -48,6 +48,7 @@ func process(unit func(*mongo.Collection, *context.Context) error) {
 
 func listChannels() *[]ChannelRecord {
 	var channels []ChannelRecord
+	log.Println("querying the database for known channels")
 
 	querier := func(collection *mongo.Collection, ctx *context.Context) error {
 		cursor, err := collection.Find(*ctx, bson.M{})
@@ -63,14 +64,23 @@ func listChannels() *[]ChannelRecord {
 
 	process(querier)
 
+	log.Printf("known channels: %v\n", channels)
+
 	return &channels
 }
 
 func registerChannel(id int64) {
+	log.Printf("registering new channel %d", id)
+
 	inserter := func(collection *mongo.Collection, ctx *context.Context) error {
 		channelRecord := ChannelRecord{ChannelID: id}
 
 		_, err := collection.InsertOne(*ctx, channelRecord)
+
+		if err != nil {
+			log.Printf("registering returned an error: %s\n", err.Error())
+			log.Println("this probably means that channel is already known.")
+		}
 
 		return err
 	}
@@ -79,6 +89,8 @@ func registerChannel(id int64) {
 }
 
 func deregisterChannel(id int64) {
+	log.Printf("deregistering channel %d", id)
+
 	deleter := func(collection *mongo.Collection, ctx *context.Context) error {
 		_, err := collection.DeleteOne(*ctx, bson.M{"channel_id": id})
 
