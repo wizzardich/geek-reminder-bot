@@ -18,6 +18,18 @@ type Scheduler struct {
 var scheduleCache = make(map[int64]*Scheduler)
 var timeout = 24 * time.Hour
 
+func restoreSchedule(bot *tgbotapi.BotAPI, registered *[]ChannelRecord) {
+	for _, channel := range *registered {
+		scheduler, delta := produceScheduler(bot)
+
+		scheduleCache[channel.ChannelID] = scheduler
+
+		go invoke(scheduler, channel.ChannelID)
+
+		log.Printf("[%d] -- channel schedule restored, first check in %s\n", channel.ChannelID, (*delta).String())
+	}
+}
+
 func produceScheduler(bot *tgbotapi.BotAPI) (*Scheduler, *time.Duration) {
 	now := time.Now()
 
