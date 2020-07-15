@@ -42,7 +42,7 @@ func produceScheduler(bot *tgbotapi.BotAPI) (*Scheduler, *time.Duration) {
 	}
 	delta := nearest10AM.Sub(time.Now())
 
-	log.Printf("new channel scheduled it's first check in %s\n", delta.String())
+	log.Printf("new channel scheduled its first check in %s\n", delta.String())
 
 	timer := time.NewTimer(delta)
 
