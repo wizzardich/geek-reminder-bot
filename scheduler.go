@@ -18,6 +18,26 @@ type Scheduler struct {
 var scheduleCache = make(map[int64]*Scheduler)
 var timeout = 24 * time.Hour
 
+func produceScheduler(bot *tgbotapi.BotAPI) (*Scheduler, *time.Duration) {
+	now := time.Now()
+
+	var nearest10AM time.Time
+	if now.Hour() < 10 {
+		nearest10AM = time.Date(now.Year(), now.Month(), now.Day(), 10, 0, 0, 0, time.UTC)
+	} else {
+		tomorrow := now.AddDate(0, 0, 1)
+		nearest10AM = time.Date(tomorrow.Year(), tomorrow.Month(), tomorrow.Day(), 10, 0, 0, 0, time.UTC)
+	}
+	delta := nearest10AM.Sub(time.Now())
+
+	log.Printf("new channel scheduled it's first check in %s\n", delta.String())
+
+	timer := time.NewTimer(delta)
+
+	scheduler := Scheduler{timer, nil, bot, make(chan bool)}
+	return &scheduler, &delta
+}
+
 func revoke(channelID int64) {
 	if scheduler, ok := scheduleCache[channelID]; ok {
 		go func() {
@@ -73,33 +93,19 @@ func invoke(scheduler *Scheduler, channelID int64) {
 }
 
 func scheduleWeeklyDoodle(bot *tgbotapi.BotAPI, channelID int64) {
-	now := time.Now()
-
 	if _, ok := scheduleCache[channelID]; ok {
 		msg := tgbotapi.NewMessage(channelID, "А мы уже, капитан!")
 		bot.Send(msg)
 		return
 	}
 
-	var nearest10AM time.Time
-	if now.Hour() < 10 {
-		nearest10AM = time.Date(now.Year(), now.Month(), now.Day(), 10, 0, 0, 0, time.UTC)
-	} else {
-		tomorrow := now.AddDate(0, 0, 1)
-		nearest10AM = time.Date(tomorrow.Year(), tomorrow.Month(), tomorrow.Day(), 10, 0, 0, 0, time.UTC)
-	}
-	delta := nearest10AM.Sub(time.Now())
+	scheduler, delta := produceScheduler(bot)
 
-	log.Printf("[%d] -- new channel scheduled it's first check in %s\n", channelID, delta.String())
+	scheduleCache[channelID] = scheduler
 
-	timer := time.NewTimer(delta)
-	scheduler := Scheduler{timer, nil, bot, make(chan bool)}
+	go invoke(scheduler, channelID)
 
-	scheduleCache[channelID] = &scheduler
-
-	go invoke(&scheduler, channelID)
-
-	msg := tgbotapi.NewMessage(channelID, "Капитан, планируем планировать! Прям через "+delta.String()+" проверю иль не пора уж!")
+	msg := tgbotapi.NewMessage(channelID, "Капитан, планируем планировать! Прям через "+(*delta).String()+" проверю иль не пора уж!")
 	scheduler.bot.Send(msg)
 }
 
