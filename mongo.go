@@ -17,7 +17,7 @@ const collection = "channels"
 // ChannelRecord is a persistency channel records stored in the database
 type ChannelRecord struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty"`
-	ChannelID int                `bson:"channel_id"`
+	ChannelID int64              `bson:"channel_id"`
 }
 
 func process(unit func(*mongo.Collection, *context.Context) error) {
@@ -66,7 +66,7 @@ func listChannels() *[]ChannelRecord {
 	return &channels
 }
 
-func registerChannel(id int) {
+func registerChannel(id int64) {
 	inserter := func(collection *mongo.Collection, ctx *context.Context) error {
 		channelRecord := ChannelRecord{ChannelID: id}
 
@@ -78,7 +78,7 @@ func registerChannel(id int) {
 	process(inserter)
 }
 
-func deregisterChannel(id int) {
+func deregisterChannel(id int64) {
 	deleter := func(collection *mongo.Collection, ctx *context.Context) error {
 		_, err := collection.DeleteOne(*ctx, bson.M{"channel_id": id})
 
