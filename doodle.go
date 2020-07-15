@@ -92,7 +92,7 @@ func composeTitle() string {
 }
 
 func newPollRequest() *PollRequest {
-	initiator := Initiator{"Your friendly bot", hostEmail, true, hostTimeZone}
+	initiator := Initiator{"Your friendly bot", hostEmail, false, hostTimeZone}
 	options := composeOptions()
 	title := composeTitle()
 
