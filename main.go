@@ -11,11 +11,13 @@ import (
 
 var hostEmail string
 var hostTimeZone string
+var mongoRouterHost string
 
 const tokenEnv = "GO_TELEGRAM_TOKEN"
 const emailEnv = "GO_DOODLE_EMAIL"
 const timezEnv = "GO_DOODLE_TZ"
 const localEnv = "GO_EXTERNAL_ADDRESS"
+const mongoEnv = "GO_MONGODB_HOSTNAME"
 
 const scheduleCommand = "/schedule"
 const scheduleNowCommand = "/schedule now"
@@ -48,11 +50,20 @@ func main() {
 		hostTimeZone = "UTC"
 	}
 
+	mongoRouterHost = os.Getenv(mongoEnv)
+
+	if mongoRouterHost == "" {
+		log.Fatalf("Environment variable %s is not defined.\n", mongoRouterHost)
+	}
+
 	bot, err := tgbotapi.NewBotAPI(token)
 
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	registered := listChannels()
+	restoreSchedule(bot, registered)
 
 	// bot.Debug = true
 
@@ -89,9 +100,11 @@ func main() {
 			scheduleNowDoodle(bot, update.ChannelPost.Chat.ID)
 		case strings.HasPrefix(update.ChannelPost.Text, scheduleWeeklyCommand):
 			log.Printf("[%d] -- will schedule weekly as per: %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
+			registerChannel(update.ChannelPost.Chat.ID)
 			scheduleWeeklyDoodle(bot, update.ChannelPost.Chat.ID)
 		case strings.HasPrefix(update.ChannelPost.Text, unscheduleCommand):
 			log.Printf("[%d] -- will unschedule now as per: %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
+			deregisterChannel(update.ChannelPost.Chat.ID)
 			revoke(update.ChannelPost.Chat.ID)
 		default:
 			log.Printf("[WARNING][%d] -- %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
