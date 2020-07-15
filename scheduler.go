@@ -30,8 +30,9 @@ func revoke(channelID int64) {
 }
 
 func invoke(scheduler *Scheduler, channelID int64) {
-	processChannel := make(chan bool)
-	go func() { processChannel <- true }()
+	processChannel := make(chan bool, 1)
+	processChannel <- true
+
 	select {
 	case <-scheduler.kill:
 		log.Printf("[%d] closing the scheduler", channelID)
