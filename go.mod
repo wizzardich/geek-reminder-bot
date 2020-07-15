@@ -7,3 +7,4 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	go.mongodb.org/mongo-driver v1.3.5
+)
