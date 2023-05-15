@@ -1,4 +1,4 @@
-FROM golang:1.14-alpine
+FROM golang:1.20-alpine
 
 LABEL org.opencontainers.image.source="https://github.com/wizzardich/geek-reminder-bot" \
       org.opencontainers.image.title="Geek Reminder Bot" \
