@@ -1,4 +1,19 @@
-FROM golang:1.20-alpine
+FROM golang:1.20-alpine as builder
+
+ENV SRC_DIR=/go/src/github.com/wizzardich/geek-reminder-bot/
+
+WORKDIR $SRC_DIR
+
+COPY go.mod .
+COPY go.sum .
+
+RUN go mod download
+
+ADD . $SRC_DIR
+
+RUN go build -o /app/geek-reminder-bot
+
+FROM golang:1.20-alpine 
 
 LABEL org.opencontainers.image.source="https://github.com/wizzardich/geek-reminder-bot" \
       org.opencontainers.image.title="Geek Reminder Bot" \
@@ -6,12 +21,8 @@ LABEL org.opencontainers.image.source="https://github.com/wizzardich/geek-remind
       org.opencontainers.image.authors="wizzardich" \
       org.opencontainers.image.licenses="MIT"
 
-ENV SRC_DIR=/go/src/github.com/wizzardich/geek-reminder-bot/
-
+COPY --from=builder /app/geek-reminder-bot /app/geek-reminder-bot
 WORKDIR /app
-ADD . $SRC_DIR
-RUN cd $SRC_DIR && \
-    go build -o /app/geek-reminder-bot
 
 EXPOSE 8443
 

@@ -12,14 +12,16 @@ import (
 var hostEmail string
 var hostTimeZone string
 var mongoRouterHost string
+var ralllyEndpoint string
 
 const tokenEnv = "GO_TELEGRAM_TOKEN"
-const emailEnv = "GO_DOODLE_EMAIL"
-const timezEnv = "GO_DOODLE_TZ"
+const emailEnv = "GO_HOST_EMAIL"
+const timezEnv = "GO_HOST_TZ"
 const localEnv = "GO_EXTERNAL_ADDRESS"
 const mongoEnv = "GO_MONGODB_HOSTNAME"
+const ralllyEndpointEnv = "GO_RALLLY_ADDRESS"
 
-const scheduleCommand = "/schedule"
+// const scheduleCommand = "/schedule"
 const scheduleNowCommand = "/schedule now"
 const scheduleWeeklyCommand = "/schedule weekly"
 const unscheduleCommand = "/unschedule"
@@ -54,6 +56,12 @@ func main() {
 
 	if mongoRouterHost == "" {
 		log.Fatalf("Environment variable %s is not defined.\n", mongoRouterHost)
+	}
+
+	ralllyEndpoint = os.Getenv(ralllyEndpointEnv)
+
+	if ralllyEndpoint == "" {
+		log.Fatalf("Environment variable %s is not defined.\n", ralllyEndpointEnv)
 	}
 
 	bot, err := tgbotapi.NewBotAPI(token)
@@ -101,7 +109,7 @@ func main() {
 		case strings.HasPrefix(update.ChannelPost.Text, scheduleWeeklyCommand):
 			log.Printf("[%d] -- will schedule weekly as per: %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
 			registerChannel(update.ChannelPost.Chat.ID)
-			scheduleWeeklyDoodle(bot, update.ChannelPost.Chat.ID)
+			scheduleWeeklyRallly(bot, update.ChannelPost.Chat.ID)
 		case strings.HasPrefix(update.ChannelPost.Text, unscheduleCommand):
 			log.Printf("[%d] -- will unschedule now as per: %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
 			deregisterChannel(update.ChannelPost.Chat.ID)

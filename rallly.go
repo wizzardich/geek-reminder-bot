@@ -1,6 +1,9 @@
 package main
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type RalllyPollInitiator struct {
 	Name  string `json:"name"`
@@ -81,12 +84,12 @@ func newRalllyPollRequest() *RalllyPollCreateRequest {
 }
 
 func createRalllyPoll() (*RalllyPollCreated, error) {
-	var pollCreated RalllyPollCreatedResponse
+	var pollCreated []RalllyPollCreatedResponse
 
-	err := postJSON("https://schedule.smugglersden.org/api/trpc/polls.create", newRalllyPollRequest(), &pollCreated)
+	err := postJSON(fmt.Sprintf("https://%s/api/trpc/polls.create?batch=1", ralllyEndpoint), newRalllyPollRequest(), &pollCreated)
 	if err != nil {
 		return nil, err
 	}
 
-	return &pollCreated.Result.Data.Json, nil
+	return &pollCreated[0].Result.Data.Json, nil
 }

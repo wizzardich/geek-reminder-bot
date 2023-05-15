@@ -92,13 +92,13 @@ func invoke(scheduler *Scheduler, channelID int64) {
 			now := time.Now()
 			if now.Weekday() == time.Sunday {
 				log.Printf("[%d] Scheduling a new poll for %s.\n", channelID, now.String())
-				scheduleNowDoodle(scheduler.bot, channelID)
+				scheduleNowRallly(scheduler.bot, channelID)
 			}
 		case <-scheduler.ticker.C:
 			now := time.Now()
 			if now.Weekday() == time.Sunday {
 				log.Printf("[%d] Scheduling a new poll for %s.\n", channelID, now.String())
-				scheduleNowDoodle(scheduler.bot, channelID)
+				scheduleNowRallly(scheduler.bot, channelID)
 			}
 		}
 	}
@@ -143,6 +143,23 @@ func scheduleNowRallly(bot *tgbotapi.BotAPI, channelID int64) {
 
 	log.Printf("Rallly %s created", created.ID)
 
-	msg := tgbotapi.NewMessage(channelID, "Ахой, гики! Еженедельный дудл подвезли! #schedule\nhttps://schedule.smugglersden.org/admin/"+created.URLID)
+	msg := tgbotapi.NewMessage(channelID, "Ахой, гики! Еженедельный дудл подвезли! #schedule\nhttps://"+ralllyEndpoint+"/admin/"+created.URLID)
 	bot.Send(msg)
+}
+
+func scheduleWeeklyRallly(bot *tgbotapi.BotAPI, channelID int64) {
+	if _, ok := scheduleCache[channelID]; ok {
+		msg := tgbotapi.NewMessage(channelID, "А мы уже, капитан!")
+		bot.Send(msg)
+		return
+	}
+
+	scheduler, delta := produceScheduler(bot)
+
+	scheduleCache[channelID] = scheduler
+
+	go invoke(scheduler, channelID)
+
+	msg := tgbotapi.NewMessage(channelID, "Капитан, планируем планировать! Прям через "+(*delta).String()+" проверю иль не пора уж!")
+	scheduler.bot.Send(msg)
 }
