@@ -97,7 +97,7 @@ func main() {
 			continue
 		case strings.HasPrefix(update.ChannelPost.Text, scheduleNowCommand):
 			log.Printf("[%d] -- will schedule now as per: %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
-			scheduleNowDoodle(bot, update.ChannelPost.Chat.ID)
+			scheduleNowRallly(bot, update.ChannelPost.Chat.ID)
 		case strings.HasPrefix(update.ChannelPost.Text, scheduleWeeklyCommand):
 			log.Printf("[%d] -- will schedule weekly as per: %s", update.ChannelPost.Chat.ID, update.ChannelPost.Text)
 			registerChannel(update.ChannelPost.Chat.ID)

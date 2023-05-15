@@ -133,3 +133,16 @@ func scheduleNowDoodle(bot *tgbotapi.BotAPI, channelID int64) {
 	msg := tgbotapi.NewMessage(channelID, "Ахой, гики! Еженедельный дудл подвезли! #doodle\nhttps://doodle.com/poll/"+created.ID)
 	bot.Send(msg)
 }
+
+func scheduleNowRallly(bot *tgbotapi.BotAPI, channelID int64) {
+	created, err := createRalllyPoll()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("Rallly %s created", created.ID)
+
+	msg := tgbotapi.NewMessage(channelID, "Ахой, гики! Еженедельный дудл подвезли! #schedule\nhttps://schedule.smugglersden.org/admin/"+created.URLID)
+	bot.Send(msg)
+}

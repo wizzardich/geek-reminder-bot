@@ -73,24 +73,6 @@ func composeOptions() *[]DateOption {
 	return &options
 }
 
-func composeTitle() string {
-	now := time.Now()
-
-	start := now
-	for start.Weekday() != time.Monday {
-		start = start.AddDate(0, 0, 1)
-	}
-
-	end := start.AddDate(0, 0, 1)
-	for end.Weekday() != time.Sunday {
-		end = end.AddDate(0, 0, 1)
-	}
-
-	title := start.Format("Jan 02") + " - " + end.Format("Jan 02") + " Geek Availability"
-
-	return title
-}
-
 func newPollRequest() *PollRequest {
 	initiator := Initiator{"Your friendly bot", hostEmail, false, hostTimeZone}
 	options := composeOptions()
