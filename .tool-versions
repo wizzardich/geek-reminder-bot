@@ -1,0 +1,4 @@
+golang 1.20.4
+golangci-lint 1.52.2
+hadolint 2.12.1-beta
+direnv system
