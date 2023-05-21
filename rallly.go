@@ -49,7 +49,7 @@ func composeRalllyOptions() []RalllyDateOption {
 
 	start := now
 	for start.Weekday() != time.Monday {
-		start = start.AddDate(0, 0, -1)
+		start = start.AddDate(0, 0, 1)
 	}
 
 	end := start.AddDate(0, 0, 7)
