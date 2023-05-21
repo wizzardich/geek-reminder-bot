@@ -9,7 +9,7 @@ COPY go.sum .
 
 RUN go mod download
 
-ADD . $SRC_DIR
+COPY . $SRC_DIR
 
 RUN go build -o /app/geek-reminder-bot
 
