@@ -143,7 +143,7 @@ func scheduleNowRallly(bot *tgbotapi.BotAPI, channelID int64) {
 
 	log.Printf("Rallly %s created", created.ID)
 
-	msg := tgbotapi.NewMessage(channelID, "Ахой, гики! Еженедельный дудл подвезли! #schedule\nhttps://"+ralllyEndpoint+"/admin/"+created.URLID)
+	msg := tgbotapi.NewMessage(channelID, "Ахой, гики! Еженедельный ралли подвезли! #schedule\nhttps://"+ralllyEndpoint+"/admin/"+created.URLID)
 	bot.Send(msg)
 }
 
