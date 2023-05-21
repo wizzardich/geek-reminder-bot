@@ -95,7 +95,10 @@ func main() {
 
 	updates := bot.ListenForWebhook("/" + bot.Token)
 
-	go http.ListenAndServe(":8443", nil)
+	go func() {
+		err := http.ListenAndServe(":8443", nil)
+		log.Fatalf("Could not start the http server: %s", err.Error())
+	}()
 
 	for update := range updates {
 		switch {

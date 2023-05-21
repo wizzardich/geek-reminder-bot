@@ -56,8 +56,8 @@ func revoke(channelID int64) {
 			scheduler.kill <- true
 			log.Printf("[%d] -- succesfully unscheduled", channelID)
 		}()
-		msg := tgbotapi.NewMessage(channelID, "Отменили все расписания в этом канале, капитан!")
-		scheduler.bot.Send(msg)
+		msg := "Отменили все расписания в этом канале, капитан!"
+		sendMsg(scheduler.bot, channelID, msg)
 	}
 }
 
@@ -104,36 +104,6 @@ func invoke(scheduler *Scheduler, channelID int64) {
 	}
 }
 
-func scheduleWeeklyDoodle(bot *tgbotapi.BotAPI, channelID int64) {
-	if _, ok := scheduleCache[channelID]; ok {
-		msg := tgbotapi.NewMessage(channelID, "А мы уже, капитан!")
-		bot.Send(msg)
-		return
-	}
-
-	scheduler, delta := produceScheduler(bot)
-
-	scheduleCache[channelID] = scheduler
-
-	go invoke(scheduler, channelID)
-
-	msg := tgbotapi.NewMessage(channelID, "Капитан, планируем планировать! Прям через "+(*delta).String()+" проверю иль не пора уж!")
-	scheduler.bot.Send(msg)
-}
-
-func scheduleNowDoodle(bot *tgbotapi.BotAPI, channelID int64) {
-	created, err := createPoll()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Printf("Poll %s created with admin key %s", created.ID, created.AdminKey)
-
-	msg := tgbotapi.NewMessage(channelID, "Ахой, гики! Еженедельный дудл подвезли! #doodle\nhttps://doodle.com/poll/"+created.ID)
-	bot.Send(msg)
-}
-
 func scheduleNowRallly(bot *tgbotapi.BotAPI, channelID int64) {
 	created, err := createRalllyPoll()
 
@@ -143,14 +113,13 @@ func scheduleNowRallly(bot *tgbotapi.BotAPI, channelID int64) {
 
 	log.Printf("Rallly %s created", created.ID)
 
-	msg := tgbotapi.NewMessage(channelID, "Ахой, гики! Еженедельный ралли подвезли! #schedule\nhttps://"+ralllyEndpoint+"/admin/"+created.URLID)
-	bot.Send(msg)
+	msg := "Ахой, гики! Еженедельный ралли подвезли! #schedule\nhttps://" + ralllyEndpoint + "/admin/" + created.URLID
+	sendMsg(bot, channelID, msg)
 }
 
 func scheduleWeeklyRallly(bot *tgbotapi.BotAPI, channelID int64) {
 	if _, ok := scheduleCache[channelID]; ok {
-		msg := tgbotapi.NewMessage(channelID, "А мы уже, капитан!")
-		bot.Send(msg)
+		sendMsg(bot, channelID, "А мы уже, капитан!")
 		return
 	}
 
@@ -160,6 +129,13 @@ func scheduleWeeklyRallly(bot *tgbotapi.BotAPI, channelID int64) {
 
 	go invoke(scheduler, channelID)
 
-	msg := tgbotapi.NewMessage(channelID, "Капитан, планируем планировать! Прям через "+(*delta).String()+" проверю иль не пора уж!")
-	scheduler.bot.Send(msg)
+	msgText := "Капитан, планируем планировать! Прям через " + (*delta).String() + " проверю иль не пора уж!"
+	sendMsg(scheduler.bot, channelID, msgText)
+}
+
+func sendMsg(bot *tgbotapi.BotAPI, channelID int64, msg string) {
+	message := tgbotapi.NewMessage(channelID, msg)
+	if _, err := bot.Send(message); err != nil {
+		log.Printf("[%d] -- error while sending message: %s", channelID, err.Error())
+	}
 }

@@ -29,7 +29,9 @@ func process(unit func(*mongo.Collection, *context.Context) error) {
 		log.Fatal(err)
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	defer cancel()
 
 	err = client.Connect(ctx)
 
@@ -38,12 +40,22 @@ func process(unit func(*mongo.Collection, *context.Context) error) {
 		log.Fatal(err)
 	}
 
-	defer client.Disconnect(ctx)
+	defer func() {
+		if err := client.Disconnect(ctx); err != nil {
+			log.Printf("Could not properly disconnect from %s.\n", url)
+			log.Fatal(err)
+		}
+	}()
 
 	databaseHandler := client.Database(database)
 	collectionHandler := databaseHandler.Collection(collection)
 
-	unit(collectionHandler, &ctx)
+	err = unit(collectionHandler, &ctx)
+
+	if err != nil {
+		log.Printf("Could not process the mongodb operation.\n")
+		log.Fatal(err)
+	}
 }
 
 func listChannels() *[]ChannelRecord {
