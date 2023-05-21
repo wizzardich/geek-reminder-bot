@@ -1,0 +1,38 @@
+name: Main CI flow
+on:
+  # publish on releases, e.g. v2.1.13 (image tagged as "2.1.13" - "v" prefix is removed)
+  release:
+    types: [published]
+
+  # publish on pushes to the main branch (image tagged as "latest")
+  push:
+    branches:
+      - master
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.20.4"
+      - uses: asdf-vm/actions/install@v2
+      # run linter and tests
+      - run: golangci-lint run
+      - run: go test -v ./...
+      - run: go vet ./...
+      - run: hadolint Dockerfile
+
+  docker_publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build and publish a Docker image for ${{ github.repository }}
+        uses: macbre/push-to-ghcr@master
+        with:
+          image_name: ${{ github.repository }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
