@@ -22,18 +22,12 @@ type ChannelRecord struct {
 
 func process(unit func(*mongo.Collection, *context.Context) error) {
 	url := "mongodb://" + mongoRouterHost + ":27017"
-	client, err := mongo.NewClient(options.Client().ApplyURI(url))
-
-	if err != nil {
-		log.Printf("Could not create a mongo client on %s.\n", url)
-		log.Fatal(err)
-	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
 	defer cancel()
 
-	err = client.Connect(ctx)
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(url))
 
 	if err != nil {
 		log.Printf("Could not establish a connection to %s.\n", url)
