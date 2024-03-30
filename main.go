@@ -88,6 +88,7 @@ func main() {
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
 	wh, err := tgbotapi.NewWebhook(localURL + bot.Token)
+	wh.AllowedUpdates = []string{"channel_post"}
 
 	if err != nil {
 		log.Fatal(err)
@@ -117,6 +118,9 @@ func main() {
 	}()
 
 	for update := range updates {
+		if debugMode {
+			log.Printf("[WARNING] -- %v", update)
+		}
 		switch {
 		case update.ChannelPost == nil:
 			continue
