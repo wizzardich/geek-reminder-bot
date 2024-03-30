@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine as builder
+FROM golang:1.22-alpine as builder
 
 ENV SRC_DIR=/go/src/github.com/wizzardich/geek-reminder-bot/
 
@@ -13,7 +13,7 @@ COPY . $SRC_DIR
 
 RUN go build -o /app/geek-reminder-bot
 
-FROM golang:1.20-alpine 
+FROM golang:1.22-alpine 
 
 LABEL org.opencontainers.image.source="https://github.com/wizzardich/geek-reminder-bot" \
       org.opencontainers.image.title="Geek Reminder Bot" \
