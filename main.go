@@ -89,6 +89,10 @@ func main() {
 
 	wh, err := tgbotapi.NewWebhook(localURL + bot.Token)
 
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	_, err = bot.Request(wh)
 
 	if err != nil {
