@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 // Scheduler contains current time till the ticker, the ticker, the responder bot API and the killer channel

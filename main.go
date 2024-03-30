@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 var hostEmail string
@@ -14,6 +14,7 @@ var hostTimeZone string
 var mongoRouterHost string
 var ralllyEndpoint string
 
+const debugEnv = "GO_DEBUG"
 const tokenEnv = "GO_TELEGRAM_TOKEN"
 const emailEnv = "GO_HOST_EMAIL"
 const timezEnv = "GO_HOST_TZ"
@@ -64,11 +65,20 @@ func main() {
 		log.Fatalf("Environment variable %s is not defined.\n", ralllyEndpointEnv)
 	}
 
+	debugMode := false
+
+	if os.Getenv(debugEnv) != "" {
+		debugMode = true
+		log.Printf("Debug mode is enabled.\n")
+	}
+
 	bot, err := tgbotapi.NewBotAPI(token)
 
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	bot.Debug = debugMode
 
 	registered := listChannels()
 	restoreSchedule(bot, registered)
@@ -77,7 +87,9 @@ func main() {
 
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
-	_, err = bot.SetWebhook(tgbotapi.NewWebhook(localURL + bot.Token))
+	wh, err := tgbotapi.NewWebhook(localURL + bot.Token)
+
+	_, err = bot.Request(wh)
 
 	if err != nil {
 		log.Fatal(err)
